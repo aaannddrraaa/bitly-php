@@ -1,10 +1,10 @@
 <?php
 
 // Define client id
-define('CLIENT_ID', '14058dc025ac29b1943b0856053c364f61cef62a');
+define('CLIENT_ID', 'YOUR_CLIENT_ID');
 
 // Define client secret
-define('CLIENT_SECRET', 'f09732ef20eec63bc860d6918a2d2bc9d034a4c1');
+define('CLIENT_SECRET', 'YOUR_CLIENT_SECRET');
 
 // Define authentication api url
 define('AUTH_URL', 'https://api-ssl.bitly.com/oauth/access_token');
@@ -13,10 +13,10 @@ define('AUTH_URL', 'https://api-ssl.bitly.com/oauth/access_token');
 define('API_URL', 'https://api-ssl.bitly.com/v3');
 
 // Define account username
-define('USERNAME', 'mititelu.andra@yahoo.com');
+define('USERNAME', 'YOUR_BITLY_USERNAME');
 
 // Define account password
-define('PASSWORD', 'testqi');
+define('PASSWORD', 'YOUR_BITLY_PASSWORD');
 
 
 class Bitly {
@@ -136,8 +136,4 @@ class Bitly {
 	}
 }
 
-$test = new Bitly();
-//echo var_dump($rez = $test->shorten("http://google.com", "http://mt.qik.dk"));
-//echo "\n";
-//echo $test->getTotalClicks($rez['url']) . "\n";
 ?>
