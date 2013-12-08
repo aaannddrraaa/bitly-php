@@ -89,6 +89,9 @@ class Bitly {
 		return $this->access_token;
 	}
 
+	// Link functions
+
+	// Function to create a short link
 	public function shorten($longUrl, $domain = "")
 	{
 		$longUrl = urlencode($longUrl);
@@ -105,7 +108,7 @@ class Bitly {
 		if ($result->{'status_code'} == 200)
 		{
 			$output['hash'] = $result->{'data'}->{'hash'};
-			$output['url'] = $result->{'data'}->{'url'};
+			$output['short_url'] = $result->{'data'}->{'short_url'};
 			$output['long_url'] = $result->{'data'}->{'long_url'};
 			$output['new_hash'] = $result->{'data'}->{'new_hash'};
 			$output['global_hash'] = $result->{'data'}->{'global_hash'};
@@ -116,6 +119,134 @@ class Bitly {
 		return $output;
 	}
 
+	// Function to expand existing short link
+	//
+	//	Params:
+	//		$shortUrl
+	//		$hash
+	//	At least one of them must be set
+	public function expand($shortUrl, $hash)
+	{
+		$shortUrl = urlencode($shortUrl);
+
+		if ($shortUrl != "" || $hash != "")
+		{
+			$url = API_URL . "/expand?access_token=" . $this->getAccessToken();
+			if ($shortUrl != "")
+				$url .= "&shortUrl=" . $shortUrl;
+			if ($hash != "")
+				$url .= "&hash=" . $hash;
+
+			$raw_result = $this->get_curl($url);
+	                $result = json_decode($raw_result);
+
+			$output = array();
+		        if (is_object($result) && $result->{'status_code'} == 200)
+				foreach ($result->{'data'}->{'expand'} as $obj)
+        		        {
+					$output['hash'] = $obj->{'user_hash'};
+	                	        $output['short_url'] = $obj->{'short_url'};
+	                        	$output['long_url'] = $obj->{'long_url'};
+		                        $output['global_hash'] = $obj->{'global_hash'};
+				}
+			else $output['error'] = $raw_result;
+
+			return $output;
+		}
+		return array("error" => "You need to specify at least one of shortUrl or hash params");
+	}
+
+
+	//Function to lookup a shortlink corresponding to a given longurl
+	//
+	//	Params:
+	//		$longUrl
+	public function lookup($longUrl)
+	{
+		$longUrl = urlencode($longUrl);
+
+		if ($longUrl != "")
+		{
+			$url = API_URL . "/link/lookup?access_token=" . $this->getAccessToken() . "&url=" . $longUrl;
+
+			$raw_result = $this->get_curl($url);
+	                $result = json_decode($raw_result);
+
+        	        $output = array();
+			if (is_object($result) && $result->{'status_code'} == 200)
+				foreach ($result->{'data'}->{'link_lookup'} as $obj)
+				{
+					$output['short_url'] = $obj->{'aggregate_link'};
+					$output['long_url'] = $obj->{'url'};
+				}
+			else $output['error'] = $raw_result;
+
+			return $output;
+		}
+
+		return array("error" => "You need to provide a longUrl");
+	}
+
+
+	//Function to change metadata for a short link
+	//
+	//	Params:
+	//		$shortUrl
+	//		$title - optional
+	//		$note - optional
+	//		$private - boolean - optional
+	//		$user_ts - timestamp - optional
+	//		$archived - boolean - optional
+	public function edit($shortUrl, $title = "", $note = "", $private = "", $user_ts = "", $archived = "")
+	{
+		if ($shortUrl != "")
+		{
+			$edit = "";
+			$shortUrl = urlencode($shortUrl);
+
+			$url = API_URL . "/user/link_edit?access_token=" . $this->getAccessToken() . "&link=" . $shortUrl;
+
+			if ($title != "")
+			{
+				$url .= "&title=" . urlencode($title);
+				$edit .= "title,";
+			}
+			if ($note != "")
+			{
+				$url .= "&note=" . urlencode($note);
+				$edit .= "note,";
+			}
+			if ($private == "true" || $private == "false")
+			{
+				$url .= "&private=" . $private;
+				$edit .= "private,";
+			}
+			if ($user_ts != "")
+			{
+				$url .= "&user_ts=" . urlencode($user_ts);
+				$edit .= "user_ts,";
+			}
+			if ($archived == "true" || $archived == "false")
+			{
+				$url .= "&archived=" . $archived;
+				$edit .= "archived,";
+			}
+
+			$edit = trim($edit, ",");
+			$url .= "&edit=" . $edit;
+			echo $url . "\n";
+			$raw_result = $this->get_curl($url);
+	                $result = json_decode($raw_result);
+        	        if (is_object($result) && $result->{'status_code'} == 200)
+	                {
+        	                $output = TRUE;
+                	}
+	                else $output = $raw_result;
+			return $output;
+		}
+		return FALSE;
+	}
+
 	public function getTotalClicks($link)
 	{
 		$link = urlencode($link);
@@ -124,16 +255,16 @@ class Bitly {
 
 		$raw_result = $this->get_curl($url);
 		$result = json_decode($raw_result);
-		if (is_object($result))
-		if ($result->{'status_code'} == 200)
+		if (is_object($result) && $result->{'status_code'} == 200)
 		{
 			$output = $result->{'data'}->{'link_clicks'};
 		}
-		else $output = var_dump($raw_result);
-		else $output = var_dump($raw_result);
+		else $output = $raw_result;
 
 		return $output;
 	}
+
+
 }
 
 ?>
